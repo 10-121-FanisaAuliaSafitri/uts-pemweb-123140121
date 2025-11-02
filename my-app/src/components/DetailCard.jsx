@@ -1,60 +1,52 @@
 import React from 'react';
-import { Cloud, CloudRain, Sun, Wind, Droplets } from 'lucide-react';
 
-const DetailCard = ({ weather, unit }) => {
-  const getWeatherIcon = (condition) => {
-    const cond = condition.toLowerCase();
-    if (cond.includes('rain') || cond.includes('hujan')) {
-      return <CloudRain size={80} className="text-blue-400" />;
-    }
-    if (cond.includes('cloud') || cond.includes('awan') || cond.includes('berawan')) {
-      return <Cloud size={80} className="text-gray-400" />;
-    }
-    return <Sun size={80} className="text-yellow-400" />;
-  };
+const getIconUrl = (iconCode) => `http://openweathermap.org/img/wn/${iconCode}@2x.png`;
 
-  const convertTemp = (temp) => {
-    if (unit === 'F') {
-      return Math.round((temp * 9/5) + 32);
-    }
-    return Math.round(temp);
-  };
+function DetailCard({ data, unit, onToggleUnit }) {
+  const { name, main, weather, wind } = data;
+  const unitSymbol = unit === 'metric' ? '°C' : '°F';
+  const speedSymbol = unit === 'metric' ? 'm/s' : 'mph';
 
   return (
-    <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg shadow-xl p-8 text-white mb-6">
-      <h2 className="text-3xl font-bold mb-6">{weather.city}</h2>
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          {getWeatherIcon(weather.condition)}
-          <div>
-            <div className="text-6xl font-bold">
-              {convertTemp(weather.temp)}°{unit}
-            </div>
-            <div className="text-xl mt-2">{weather.condition}</div>
-          </div>
+    <div className="bg-white/10 p-6 rounded-xl backdrop-blur-lg border border-white/20 shadow-lg mb-6">
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold">{name}</h2>
+          <p className="text-lg capitalize text-white/80">
+            {weather[0].description}
+          </p>
+        </div>
+        
+        <button
+          onClick={onToggleUnit}
+          className="px-4 py-1 bg-fuchsia-500/30 text-white text-sm font-medium rounded-full hover:bg-fuchsia-500/40"
+        >
+          Ubah ke {unit === 'metric' ? '°F' : '°C'}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 items-center mt-4">
+        <div className="flex items-center justify-center sm:justify-start">
+          <img
+            src={getIconUrl(weather[0].icon)}
+            alt={weather[0].description}
+            className="w-24 h-24"
+          />
+          <span className="text-6xl font-light ml-2">
+            {main.temp.toFixed(1)}{unitSymbol}
+          </span>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <Droplets size={24} />
-            <div>
-              <div className="text-sm opacity-80">Kelembaban</div>
-              <div className="text-xl font-semibold">{weather.humidity}%</div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Wind size={24} />
-            <div>
-              <div className="text-sm opacity-80">Kecepatan Angin</div>
-              <div className="text-xl font-semibold">{weather.windSpeed} km/h</div>
-               </div>
-          </div>
+        <div className="space-y-2 text-center sm:text-right mt-4 sm:mt-0">
+          <p className="text-lg">
+            Feels like: <strong>{main.feels_like.toFixed(1)}{unitSymbol}</strong>
+          </p>
+          <p className="text-lg">Humidity: <strong>{main.humidity}%</strong></p>
+          <p className="text-lg">Wind: <strong>{wind.speed.toFixed(1)} {speedSymbol}</strong></p>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default DetailCard;
