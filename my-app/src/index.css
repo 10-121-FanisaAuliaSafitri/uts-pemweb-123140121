@@ -1,7 +1,0 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  @apply min-h-screen bg-gradient-to-br from-rose-200 via-pink-300 to-fuchsia-300 text-white font-sans;
-}
