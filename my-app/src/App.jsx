@@ -3,179 +3,113 @@ import Header from './components/Header';
 import SearchForm from './components/SearchForm';
 import DetailCard from './components/DetailCard';
 import DataTable from './components/DataTable';
-import { Cloud, AlertCircle, Loader } from 'lucide-react';
-import './App.css';
-import { API_KEY, BASE_URL } from './api';
+import { fetchCurrentWeather, fetchForecast } from './api';
+
+const STORAGE_KEY = 'uts_weather_history';
 
 function App() {
-  const [unit, setUnit] = useState('metric');
   const [currentWeather, setCurrentWeather] = useState(null);
-  const [forecast, setForecast] = useState([]);
-  const [searchHistory, setSearchHistory] = useState([]);
+  const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [city, setCity] = useState('Jakarta');
+  const [unit, setUnit] = useState('metric');
+
+  const [searchHistory, setSearchHistory] = useState(() => {
+    const storedHistory = localStorage.getItem(STORAGE_KEY);
+    return storedHistory ? JSON.parse(storedHistory) : [];
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem('weatherHistory');
-    if (saved) {
-      try {
-        setSearchHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error('Error loading history:', e);
-      }
-    }
-  }, []);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(searchHistory));
+  }, [searchHistory]);
 
-    const handleSearch = async (city) => {
-    setLoading(true);
-    setError(null);
-    setCurrentWeather(null);
-    setForecast([]);
-
-    try {
-      const weatherUrl = ${BASE_URL}/weather?q=${city}&appid=${API_KEY}&units=${unit};
-      const forecastUrl = ${BASE_URL}/forecast?q=${city}&appid=${API_KEY}&units=${unit};
-
-      const [weatherRes, forecastRes] = await Promise.all([
-        fetch(weatherUrl),
-        fetch(forecastUrl)
-      ]);
-
-      if (!weatherRes.ok) {
-        if (weatherRes.status === 404) throw new Error(Kota "${city}" tidak ditemukan.);
-        throw new Error('Gagal mengambil data cuaca.');
-      }
-
-      if (!forecastRes.ok) {
-        throw new Error('Gagal mengambil data forecast.');
-      }
-
-      const weatherData = await weatherRes.json();
-      const forecastData = await forecastRes.json();
-
-      const dailyData = forecastData.list.filter(item => 
-        item.dt_txt.includes("12:00:00")
-      );
-
-       let finalForecast = dailyData.slice(0, 5);
-
-      if (finalForecast.length < 5) {
-          finalForecast = [];
-          for (let i = 0; i < forecastData.list.length; i += 8) {
-              finalForecast.push(forecastData.list[i]);
-          }
-          finalForecast = finalForecast.slice(0, 5);
-      }
-
-      setCurrentWeather(weatherData);
-      setForecast(forecastData);
-
-      setSearchHistory(prev => {
-        const standardizedName = weatherData.name;
-        const filtered = prev.filter(item => 
-          item.toLowerCase() !== city.toLowerCase()
-        );
-
-         const updated = [weatherData.city, ...filtered].slice(0, 5);
-        
-        localStorage.setItem('weatherHistory', JSON.stringify(updated));
-        
-        return updated;
-      });
-
-    } catch (err) {
-      setError(err.message || 'Terjadi kesalahan saat mengambil data cuaca');
+  useEffect(() => {
+    if (!city) return;
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
       setCurrentWeather(null);
-      setForecast([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      setForecast(null);
+      try {
+        const [currentData, forecastData] = await Promise.all([
+          fetchCurrentWeather(city, unit),
+          fetchForecast(city, unit),
+        ]);
+        setCurrentWeather(currentData);
+        setForecast(forecastData);
+        const cityName = currentData.name;
+        if (!searchHistory.includes(cityName)) {
+          setSearchHistory((prevHistory) => [
+            cityName,
+            ...prevHistory.slice(0, 4),
+          ]);
+        }
+      } catch (err) {
+        setError(err.message);
+        setCurrentWeather(null);
+        setForecast(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [city, unit]);
 
-   const handleSelectHistory = (city) => {
-    handleSearch(city);
+  const handleSearch = (searchedCity) => {
+    setCity(searchedCity);
   };
-
-  const handleToggleUnit = (newUnit) => {
-    setUnit(newUnit);
-    if (currentWeather) {
-      handleSearch(currentWeather.name);
-    }
+  const handleHistoryClick = (historyCity) => {
+    setCity(historyCity);
   };
-
-   const handleClearError = () => {
-    setError(null);
+  const handleToggleUnit = () => {
+    setUnit((prevUnit) => (prevUnit === 'metric' ? 'imperial' : 'metric'));
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header unit={unit} onToggleUnit={handleToggleUnit} />
-      
-      <main className="max-w-6xl mx-auto p-6">
-        <SearchForm 
-          onSearch={handleSearch}
-          searchHistory={searchHistory}
-          onSelectHistory={handleSelectHistory}
-          loading={loading}
-        />
+    <div className="container mx-auto max-w-4xl p-4">
+      <Header />
 
-           {loading && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader size={48} className="text-blue-500 animate-spin mb-4" />
-            <p className="text-gray-600">Memuat data cuaca...</p>
-          </div>
+      <SearchForm onSearch={handleSearch} />
+
+      {searchHistory.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-2 mb-4">
+          <span className="self-center text-sm font-medium">Terakhir dicari:</span>
+          {searchHistory.map((historyCity) => (
+            <button
+              key={historyCity}
+              onClick={() => handleHistoryClick(historyCity)}
+              className="px-3 py-1 bg-white/10 text-white text-sm rounded-full backdrop-blur-md hover:bg-fuchsia-500/20 transition"
+            >
+              {historyCity}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <main>
+        {loading && (
+          <p className="text-center text-xl text-fuchsia-100">Memuat data...</p>
         )}
 
-        {error && !loading && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle size={24} className="text-red-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-red-800 font-semibold mb-1">Error</h3>
-                <p className="text-red-600">{error}</p>
-                <button
-                  onClick={handleClearError}
-                  className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
+        {error && (
+          <p className="text-center text-xl text-white p-4 bg-red-500/30 rounded-lg backdrop-blur-md border border-red-500/50">
+            Error: {error}
+          </p>
         )}
 
-        {!currentWeather && !loading && !error && (
-          <div className="text-center py-20">
-            <Cloud size={64} className="mx-auto text-gray-400 mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-600 mb-2">
-              Selamat Datang di Weather Dashboard
-            </h2>
-            <p className="text-gray-500">
-              Cari kota untuk melihat informasi cuaca terkini
-            </p>
-          </div>
+        {!loading && !error && currentWeather && (
+          <DetailCard
+            data={currentWeather}
+            unit={unit}
+            onToggleUnit={handleToggleUnit}
+          />
         )}
 
-        {currentWeather && !loading && (
-          <>
-            <DetailCard weather={currentWeather} unit={unit} />
-            {forecast.length > 0 && (
-              <DataTable forecast={forecast} unit={unit} />
-            )}
-          </>
+        {!loading && !error && forecast && (
+          <DataTable data={forecast} unit={unit} />
         )}
       </main>
-
-        <footer className="bg-white border-t mt-12 py-6">
-        <div className="max-w-6xl mx-auto px-6 text-center text-gray-600">
-          <p className="text-sm">
-            Data cuaca dari OpenWeatherMap API
-          </p>
-          <p className="text-xs mt-2 text-gray-500">
-            Weather Dashboard v1.0 - Real-time weather information
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
