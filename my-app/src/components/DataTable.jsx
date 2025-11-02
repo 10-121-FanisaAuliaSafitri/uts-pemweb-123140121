@@ -1,80 +1,57 @@
 import React from 'react';
-import { Cloud, CloudRain, Sun } from 'lucide-react';
 
-const DataTable = ({ forecast, unit }) => {
-  const convertTemp = (temp) => {
-    if (unit === 'F') {
-      return Math.round((temp * 9/5) + 32);
-    }
-    return Math.round(temp);
-  };
-
-  const getWeatherIcon = (condition) => {
-    const cond = condition.toLowerCase();
-    if (cond.includes('rain') || cond.includes('hujan')) {
-      return <CloudRain size={24} className="text-blue-500" />;
-    }
-    if (cond.includes('cloud') || cond.includes('awan') || cond.includes('berawan')) {
-      return <Cloud size={24} className="text-gray-500" />;
-    }
-    return <Sun size={24} className="text-yellow-500" />;
-  };
-
-   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="bg-gray-50 px-6 py-4 border-b">
-        <h3 className="text-xl font-bold text-gray-800">Prakiraan 5 Hari ke Depan</h3>
-      </div>
-
-       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                Tanggal
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                Cuaca
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                Temperatur
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                Kelembaban
-              </th>
-               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                Angin
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {forecast.map((day, idx) => (
-              <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {day.date}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {getWeatherIcon(day.condition)}
-                    <span className="text-sm text-gray-700">{day.condition}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-semibold">
-                  {convertTemp(day.temp)}°{unit}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {day.humidity}%
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  {day.windSpeed} km/h
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
-    </div>
-  );
+const formatDay = (timestamp) => {
+  return new Date(timestamp * 1000).toLocaleDateString('id-ID', { weekday: 'long' });
 };
+const getIconUrl = (iconCode) => `http://openweathermap.org/img/wn/${iconCode}.png`;
 
-export default DataTable; 
+function DataTable({ data, unit }) {
+  const dailyData = data.list.filter(item => 
+    item.dt_txt.includes("12:00:00")
+  );
+  const unitSymbol = unit === 'metric' ? '°C' : '°F';
+
+  return (
+    <div className="bg-white/10 p-6 rounded-xl backdrop-blur-lg border border-white/20 shadow-lg overflow-x-auto">
+      <h3 className="text-2xl font-bold mb-4">5-Day Forecast</h3>
+      
+      <table className="w-full min-w-max text-left">
+        
+        <thead>
+          <tr className="border-b-2 border-fuchsia-300/30">
+            <th className="py-2 px-3">Hari</th>
+            <th className="py-2 px-3">Cuaca</th>
+            <th className="py-2 px-3">Suhu (Min/Max)</th>
+            <th className="py-2 px-3">Kelembapan</th>
+          </tr>
+        </thead> 
+        
+        <tbody>
+          {dailyData.map((day) => (
+            <tr key={day.dt} className="border-b border-fuchsia-300/10 hover:bg-fuchsia-500/10">
+              <td className="py-3 px-3 font-medium">{formatDay(day.dt)}</td>
+              <td className="py-3 px-3 flex items-center gap-2">
+                <img
+                  src={getIconUrl(day.weather[0].icon)}
+                  alt={day.weather[0].description}
+                  className="w-8 h-8"
+                />
+                <span className="capitalize text-sm text-white/80">
+                  {day.weather[0].description}
+                </span>
+              </td>
+              <td className="py-3 px-3">
+                {day.main.temp_min.toFixed(0)}° / {day.main.temp_max.toFixed(0)}{unitSymbol}
+              </td>
+              <td className="py-3 px-3">{day.main.humidity}%</td>
+            </tr>
+          ))}
+        </tbody>
+
+      </table> 
+
+    </div> 
+  );
+}
+
+export default DataTable;
