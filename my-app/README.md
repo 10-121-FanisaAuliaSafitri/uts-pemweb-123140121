@@ -1,16 +1,61 @@
-# React + Vite
+# UTS Pengembangan Aplikasi Web - Weather Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ini adalah submission untuk Ujian Tengah Semester (UTS) mata kuliah Pengembangan Aplikasi Web. Project ini adalah aplikasi dashboard cuaca yang dibuat menggunakan ReactJS dan TailwindCSS.
 
-Currently, two official plugins are available:
+Aplikasi ini mengimplementasikan Studi Kasus 1 (Weather Dashboard) karena digit terakhir NIM adalah 1.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+informasi Mahasiswa
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Nama: Fanisa Aulia Safitri
+NIM: 123140121
 
-## Expanding the ESLint configuration
+Fitur Project
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Sesuai dengan kriteria tugas, aplikasi ini memiliki fitur:
+* Pencarian cuaca berdasarkan nama kota.
+* Form input dengan validasi HTML.
+* Menampilkan cuaca saat ini (suhu, kelembapan, kecepatan angin).
+* Tabel forecast 5 hari ke depan.
+* Tombol untuk mengubah unit (Celsius/Fahrenheit).
+* History pencarian yang disimpan di `localStorage`.
+* Integrasi dengan OpenWeatherMap API.
+* Desain responsif.
+
+---
+
+ Cara Instalasi dan Menjalankan
+
+1.  **Clone repository ini:**
+    ```bash
+    git clone [https://github.com/10_121_FanisaAuliaSafitri/uts-pemweb-123140121.git](https://github.com/10_121_FanisaAuliaSafitri/uts-pemweb-123140121.git)
+    cd uts-pemweb-NIM_ANDA/my-app
+    ```
+
+2.  **Install dependencies:**
+    (Pastikan Anda sudah meng-install Node.js dan npm)
+    ```bash
+    npm install
+    ```
+
+3.  **Jalankan aplikasi (Mode Development):**
+    ```bash
+    npm run dev
+    ```
+    Aplikasi akan berjalan di `http://localhost:5173`.
+
+---
+
+## 🚀 Link Deployment Vercel
+
+Aplikasi ini telah di-deploy ke Vercel dan dapat diakses secara publik:
+
+https://uts-pemweb-123140121.vercel.app/
+
+---
+
+## 📸 Screenshot Aplikasi
+
+Berikut adalah tampilan dari aplikasi yang telah di-deploy.
+
+<img width="1924" height="1024" alt="image" src="https://github.com/user-attachments/assets/2e29d439-4599-4e48-ae01-09d84aba8a85" />
