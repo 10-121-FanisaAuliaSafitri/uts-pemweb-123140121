@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PERUBAHAN BESAR DI SINI */
+body {
+  /* 1. Ganti gradient dari pink/ungu kusam ke
+       kombinasi rose/pink cerah (fuchsia).
+  */
+  @apply min-h-screen bg-gradient-to-br from-rose-200 via-pink-300 to-fuchsia-300 text-white font-sans;
+}
